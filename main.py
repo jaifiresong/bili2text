@@ -1,10 +1,12 @@
-from downBili import download_video
-from exAudio import *
-from speech2text import *
+import whisper
+import time
+import os
+from downloader import D
 
-av = input("请输入av号：")
-filename = download_video(av)
-foldername = run_split(filename)
-run_analysis(foldername, prompt="以下是普通话的句子。这是一个关于{}的视频。".format(filename))
-output_path = f"outputs/{foldername}.txt"
-print("转换完成！", output_path)
+st = time.time()
+model = whisper.load_model('tiny')
+
+r = model.transcribe(f'./runtime/tmp-BV1224y1u7hF.mp3.mp3', fp16=False, language='Chinese', initial_prompt='以下是普通话的句子')
+print(r['text'])
+en = time.time()
+print(en - st)
