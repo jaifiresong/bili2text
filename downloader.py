@@ -1,5 +1,3 @@
-from efficient.general import cmd
-
 import urllib.request
 from urllib.request import Request
 from urllib.parse import urlparse
