@@ -122,7 +122,7 @@ class D:
         print("正在解析网页...")
         outputPath = os.path.split(os.path.realpath(sys.argv[0]))[0]
         doc = Soup(_html, features="html.parser")
-        fileName = doc.select("head > title")[0].text + '.mp4'
+        fileName = doc.title.string + '.mp4'
         for rchar in ('/', '\\', ':', '*', '?', '"', '<', '>', '|'):
             fileName = fileName.replace(rchar, "-")
         if os.path.exists(os.path.join(outputPath, fileName)):
