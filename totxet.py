@@ -30,7 +30,8 @@ def to_text(bv):
 
 
 if '__main__' == __name__:
-    obj = D('https://www.bilibili.com/video/BV1XM411K7JR/?spm_id_from=333.788&vd_source=544102bc44b42747fd532b892c2f591e')
+    # obj = D('https://www.bilibili.com/video/BV1XM411K7JR/?spm_id_from=333.788&vd_source=544102bc44b42747fd532b892c2f591e')
+    obj = D('https://www.bilibili.com/video/BV1oa411b7c9/?spm_id_from=333.1007.top_right_bar_window_history.content.click&vd_source=544102bc44b42747fd532b892c2f591e')
     print('')
     excuteCommand(f'ffmpeg -i ./runtime/{obj.audio} -q:a 0 -map a ./runtime/tmp-{obj.bv}.mp3 -y')
     to_text(obj.bv)

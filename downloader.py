@@ -122,7 +122,8 @@ class D:
         print("正在解析网页...")
         outputPath = os.path.split(os.path.realpath(sys.argv[0]))[0]
         doc = Soup(_html, features="html.parser")
-        fileName = doc.select("head > title")[0].text + '.mp4'
+        # print(doc)
+        fileName =  '1212.mp4'
         for rchar in ('/', '\\', ':', '*', '?', '"', '<', '>', '|'):
             fileName = fileName.replace(rchar, "-")
         if os.path.exists(os.path.join(outputPath, fileName)):
@@ -216,4 +217,5 @@ class D:
 
 
 if '__main__' == __name__:
-    v = D('https://www.bilibili.com/video/BV1AN411K7SC/?spm_id_from=333.999.0.0&vd_source=544102bc44b42747fd532b892c2f591e')
+    # v = D('https://www.bilibili.com/video/BV1AN411K7SC/?spm_id_from=333.999.0.0&vd_source=544102bc44b42747fd532b892c2f591e')
+    v = D('https://www.bilibili.com/video/BV1oa411b7c9/?spm_id_from=333.1007.top_right_bar_window_history.content.click&vd_source=544102bc44b42747fd532b892c2f591e')
