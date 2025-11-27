@@ -1,5 +1,7 @@
+pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+
 参考项目
-- 下载视频，特别感谢，自由度高，可性好
+- 下载视频，特别感谢，自由度高
     - https://github.com/abumpkin/bilibiliDownloader
 
 - 下载视频
