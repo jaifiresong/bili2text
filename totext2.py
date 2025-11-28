@@ -12,7 +12,7 @@ def to_text(bv, m='tiny'):
     print('start transcribe ...')
     st = time.time()
     model = whisper.load_model(m)
-    r = model.transcribe(f'./runtime/tmp-{bv}.mp3', fp16=False, language='Chinese', initial_prompt='以下是普通话的句子')
+    r = model.transcribe(f'./runtime/{bv}.mp3', fp16=False, language='Chinese', initial_prompt='以下是普通话的句子')
     with open(f'./runtime/{bv}.txt', 'w', encoding='utf-8') as fp:
         fp.write(r['text'])
     en = time.time()
@@ -20,4 +20,7 @@ def to_text(bv, m='tiny'):
 
 
 if '__main__' == __name__:
-    to_text('BV1oa411b7c9', 'small')
+    # f'ffmpeg -i 6.mp4 -q:a 0 -map a 6.mp3 -y'
+    # https://www.xiazaitool.com/dy
+    to_text('6', 'small')
+
