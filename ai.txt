@@ -13,3 +13,7 @@
 4。文档目录 叫 resources 吧，不要管DDD目录
 5。实用简洁就好
 另外提示一下，@downloaders\BiliDownloader.py  @ChatClient.py @process_doc.py 复用这三个文件的代码，尽量不要改动他们，除非必须要改
+
+
+
+ pip install -r requirements.txt  -i https://mirrors.aliyun.com/pypi/simple/
