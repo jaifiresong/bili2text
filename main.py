@@ -125,13 +125,13 @@ async def api_document_content(bvid: str, page: int, doc_type: str = "raw"):
 
 @app.get("/", response_class=HTMLResponse)
 async def page_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 @app.get("/documents", response_class=HTMLResponse)
 async def page_documents(request: Request):
     docs = scan_documents()
-    return templates.TemplateResponse("documents.html", {"request": request, "docs": docs})
+    return templates.TemplateResponse(request, "documents.html", {"docs": docs})
 
 
 @app.get("/documents/{bvid}/{page}", response_class=HTMLResponse)
@@ -141,8 +141,7 @@ async def page_detail(request: Request, bvid: str, page: int):
     part = ""
     if info and "pages" in info:
         part = info["pages"].get(str(page), "")
-    return templates.TemplateResponse("detail.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "detail.html", {
         "bvid": bvid,
         "page": page,
         "title": title,
