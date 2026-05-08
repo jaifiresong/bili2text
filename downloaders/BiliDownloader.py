@@ -21,7 +21,7 @@ class BiliDownloader:
             headers=HEADERS,
             cookies=cookies,
             follow_redirects=True,
-            timeout=10,
+            timeout=httpx.Timeout(10.0, connect=10.0, read=300.0, write=30.0),
             verify=False,
         )
 
