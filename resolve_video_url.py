@@ -18,6 +18,7 @@ https://github.com/yutto-dev/yutto
 """
 from __future__ import annotations
 import asyncio
+import json
 
 import re
 import sys
@@ -122,9 +123,7 @@ async def get_video_info(client: httpx.AsyncClient, aid: str, bvid: str) -> dict
     return data["data"]
 
 
-async def get_playurl(
-    client: httpx.AsyncClient, aid: str, bvid: str, cid: str
-) -> dict:
+async def get_playurl(client: httpx.AsyncClient, aid: str, bvid: str, cid: str) -> dict:
     """获取DASH格式播放地址。"""
     api = "https://api.bilibili.com/x/player/playurl"
     params = {
@@ -246,10 +245,9 @@ def main():
     url = sys.argv[1]
     sessdata = sys.argv[2] if len(sys.argv) > 2 else None
 
-
     asyncio.run(resolve(url, sessdata))
 
 
 if __name__ == "__main__":
     # main()
-    asyncio.run(resolve("https://www.bilibili.com/video/BV1sTAwzTEJL?spm_id_from=333.788.videopod.episodes&vd_source=544102bc44b42747fd532b892c2f591e&p=2"))
+    asyncio.run(resolve("https://www.bilibili.com/video/BV1fMwvzDECY/?spm_id_from=333.1007.tianma.1-1-1.click"))
