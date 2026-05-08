@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bili2Text - 视频转文档</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <h1>Bili2Text</h1>
+            <a href="/documents" class="btn-outline">📚 我的文档</a>
+        </nav>
+
+        <div class="card">
+            <h2>输入 B站视频地址</h2>
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="https://www.bilibili.com/video/BV1xx411c7mD" autofocus>
+                <button id="resolveBtn" onclick="resolveVideo()">解析</button>
+            </div>
+            <p class="hint">支持普通视频地址、短链接 b23.tv 等</p>
+        </div>
+
+        <div id="pageSelector" class="card hidden">
+            <h3>选择要处理的分P</h3>
+            <div id="pageList" class="page-list"></div>
+            <div class="actions">
+                <button onclick="selectAll()">全选</button>
+                <button onclick="selectNone()">全不选</button>
+                <button class="btn-primary" onclick="submitTask()">开始处理</button>
+            </div>
+        </div>
+
+        <div id="progressCard" class="card hidden">
+            <h3>处理进度</h3>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <p id="progressText">等待开始...</p>
+            <div id="progressLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentVideo = null;
+
+        async function resolveVideo() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) return alert('请输入视频地址');
+
+            const btn = document.getElementById('resolveBtn');
+            btn.disabled = true;
+            btn.textContent = '解析中...';
+
+            try {
+                const res = await fetch('/api/resolve', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url})
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || '解析失败');
+
+                currentVideo = data;
+                renderPageList(data.pages);
+                document.getElementById('pageSelector').classList.remove('hidden');
+            } catch (e) {
+                alert(e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '解析';
+            }
+        }
+
+        function renderPageList(pages) {
+            const container = document.getElementById('pageList');
+            container.innerHTML = pages.map(p => `
+                <label class="page-item">
+                    <input type="checkbox" value="${p.page}" checked>
+                    <span class="page-num">P${p.page}</span>
+                    <span class="page-title">${escapeHtml(p.part)}</span>
+                    <span class="page-meta">${fmtDuration(p.duration)}</span>
+                </label>
+            `).join('');
+        }
+
+        function selectAll() {
+            document.querySelectorAll('#pageList input').forEach(cb => cb.checked = true);
+        }
+        function selectNone() {
+            document.querySelectorAll('#pageList input').forEach(cb => cb.checked = false);
+        }
+
+        async function submitTask() {
+            const checked = document.querySelectorAll('#pageList input:checked');
+            if (checked.length === 0) return alert('请至少选择一个分P');
+
+            const pages = Array.from(checked).map(cb => parseInt(cb.value));
+            const btn = document.querySelector('#pageSelector .btn-primary');
+            btn.disabled = true;
+            btn.textContent = '启动中...';
+
+            try {
+                const res = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        url: document.getElementById('urlInput').value.trim(),
+                        pages: pages,
+                        bvid: currentVideo.bvid,
+                        title: currentVideo.title,
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || '创建任务失败');
+
+                document.getElementById('progressCard').classList.remove('hidden');
+                startSSE(data.task_id);
+            } catch (e) {
+                alert(e.message);
+                btn.disabled = false;
+                btn.textContent = '开始处理';
+            }
+        }
+
+        function startSSE(taskId) {
+            const source = new EventSource(`/api/tasks/${taskId}/sse`);
+            const logEl = document.getElementById('progressLog');
+            const textEl = document.getElementById('progressText');
+            const fillEl = document.getElementById('progressFill');
+
+            source.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                const d = msg.data;
+
+                if (d.progress !== undefined) {
+                    fillEl.style.width = d.progress + '%';
+                }
+                if (d.message) {
+                    textEl.textContent = d.message;
+                    logEl.innerHTML += `<div>${escapeHtml(d.message)}</div>`;
+                    logEl.scrollTop = logEl.scrollHeight;
+                }
+
+                if (msg.event === 'completed') {
+                    source.close();
+                    textEl.textContent = '全部完成！';
+                    fillEl.style.width = '100%';
+                    logEl.innerHTML += `<div class="success">✅ 完成！<a href="/documents">查看文档</a></div>`;
+                    document.querySelector('#pageSelector .btn-primary').disabled = false;
+                    document.querySelector('#pageSelector .btn-primary').textContent = '开始处理';
+                }
+                if (msg.event === 'failed') {
+                    source.close();
+                    textEl.textContent = '处理失败';
+                    logEl.innerHTML += `<div class="error">❌ 失败: ${escapeHtml(d.message)}</div>`;
+                    document.querySelector('#pageSelector .btn-primary').disabled = false;
+                    document.querySelector('#pageSelector .btn-primary').textContent = '开始处理';
+                }
+            };
+
+            source.onerror = () => {
+                source.close();
+                textEl.textContent = '连接中断';
+            };
+        }
+
+        function fmtDuration(sec) {
+            if (!sec) return '';
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
