@@ -3,10 +3,11 @@ import os
 import sys
 from pathlib import Path
 
-from openai import OpenAI
+from llm import ChatClient
 
 
-def get_client():
+def get_client(system_role: str) -> ChatClient:
+    """根据环境变量创建 ChatClient 实例。"""
     api_key = os.environ.get("OPENAI_API_KEY")
     base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
     model = os.environ.get("OPENAI_MODEL", "gpt-4o")
@@ -18,8 +19,14 @@ def get_client():
         print("示例（Bash）      : export OPENAI_API_KEY=sk-xxx")
         sys.exit(1)
 
-    client = OpenAI(api_key=api_key, base_url=base_url)
-    return client, model
+    return ChatClient(
+        model=model,
+        api_key=api_key,
+        base_url=base_url,
+        system_role=system_role,
+        # 两个任务都是单轮长文本，history 不需要很大
+        max_history=4,
+    )
 
 
 PROMPT_PUNCTUATION = """你是一位专业的中文文本编辑。请对以下视频教程转录文本进行处理：
@@ -49,25 +56,6 @@ PROMPT_SUMMARY = """你是一位资深的软件架构学习教练。请对以下
 """
 
 
-def call_llm(client, model, prompt, task_name):
-    print(f"[{task_name}] 正在调用模型 {model} ...")
-    try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "你是一个专业的中文技术内容助手。"},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.3,
-        )
-        content = resp.choices[0].message.content
-        print(f"[{task_name}] 完成，共返回 {len(content)} 字符。")
-        return content
-    except Exception as e:
-        print(f"[{task_name}] 调用失败: {e}")
-        sys.exit(1)
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="为无标点的视频教程转录文本添加标点，并生成知识点总结。"
@@ -80,7 +68,6 @@ def main():
         print(f"错误：文件不存在: {input_path}")
         sys.exit(1)
 
-    # 读取原始内容
     try:
         text = input_path.read_text(encoding="utf-8")
     except Exception as e:
@@ -93,23 +80,31 @@ def main():
 
     print(f"已读取文件: {input_path} ({len(text)} 字符)")
 
-    client, model = get_client()
+    # 任务1：加标点（独立 client，隔离上下文）
+    print("\n[任务 1/2] 加标点与分段")
+    client1 = get_client("你是一个专业的中文文本编辑。")
+    try:
+        punctuated = client1.chat(PROMPT_PUNCTUATION + text, stream=False)
+    except RuntimeError as e:
+        print(e)
+        sys.exit(1)
 
-    # 任务1：加标点
-    punctuated = call_llm(
-        client, model, PROMPT_PUNCTUATION + text, "加标点与分段"
-    )
     out_punctuated = input_path.parent / (input_path.stem + "_punctuated.md")
     out_punctuated.write_text(punctuated, encoding="utf-8")
-    print(f"[加标点与分段] 已保存: {out_punctuated}")
+    print(f"已保存: {out_punctuated}")
 
-    # 任务2：总结
-    summary = call_llm(
-        client, model, PROMPT_SUMMARY + text, "提取关键点"
-    )
+    # 任务2：总结（独立 client，隔离上下文）
+    print("\n[任务 2/2] 提取关键点")
+    client2 = get_client("你是一个资深的软件架构学习教练。")
+    try:
+        summary = client2.chat(PROMPT_SUMMARY + text, stream=False)
+    except RuntimeError as e:
+        print(e)
+        sys.exit(1)
+
     out_summary = input_path.parent / (input_path.stem + "_summary.md")
     out_summary.write_text(summary, encoding="utf-8")
-    print(f"[提取关键点] 已保存: {out_summary}")
+    print(f"已保存: {out_summary}")
 
     print("\n全部完成！")
 
