@@ -12,7 +12,7 @@ def to_text(m='tiny'):
     print('start transcribe ...')
     st = time.time()
     model = whisper.load_model(m)
-    r = model.transcribe(f'./resources/BV178w1z7EHQ/1.mp3', fp16=False, language='Chinese', initial_prompt='以下是普通话的句子')
+    r = model.transcribe(f'./resources/BV178w1z7EHQ/2.mp3', fp16=False, language='Chinese', initial_prompt='以下是普通话的句子')
     with open(f'./1.txt', 'w', encoding='utf-8') as fp:
         fp.write(r['text'])
     en = time.time()
