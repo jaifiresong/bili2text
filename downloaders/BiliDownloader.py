@@ -1,7 +1,4 @@
-import json
-import os.path
-from os import mkdir
-
+import os
 import httpx
 import asyncio
 from urllib.parse import quote, unquote, urlparse
