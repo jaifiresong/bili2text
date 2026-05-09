@@ -17,3 +17,8 @@
 
 
  pip install -r requirements.txt  -i https://mirrors.aliyun.com/pypi/simple/
+
+
+ 实现方式
+ - 页面带上URL发起请求
+ - 后台解析这个URL，获取视频信息后返回
