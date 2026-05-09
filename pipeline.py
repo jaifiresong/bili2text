@@ -6,7 +6,8 @@ from datetime import datetime
 import whisper
 
 from ChatClient import ChatClient
-from downloaders.BiliDownloader import BiliDownloader
+from infrastructure.external.downloaders.BiliDownloader import BiliDownloader
+
 from models import (
     TaskInfo,
     TaskStatus,

@@ -8,10 +8,11 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from infrastructure.external.downloaders.BiliDownloader import BiliDownloader
 from models import TaskStatus, read_doc_content, load_info_json as _load_info_json
 from pipeline import create_task, get_task, run_pipeline, task_queues
 from services import scan_documents
-from downloaders.BiliDownloader import BiliDownloader
+
 
 load_dotenv()
 
