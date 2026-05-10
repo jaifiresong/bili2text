@@ -17,28 +17,23 @@ class TaskStatus(str, Enum):
     FAILED = "failed"
 
 
-@dataclass(frozen=True)
-class SourceIdentifier:
+@dataclass
+class TaskDownload:
     """值对象：跨平台内容来源标识。
 
     示例：
         bilibili  -> SourceIdentifier("bilibili", "BV1xx411c7mD")
         youtube   -> SourceIdentifier("youtube",  "dQw4w9WgXcQ")
     """
-    external_id: str  # 平台侧唯一ID
     platform: str  # e.g. "bilibili", "youtube"
-    title: str
+    external_id: str  # 平台侧唯一ID
     index: int
-    full_path: str
-    duration: int = 0
 
-    @property
-    def full_path(self):
-        return os.path.join(self.platform, self.external_id, f"{self.index}.mp3")
-
-    @property
-    def downloaded(self):
-        return os.path.exists(self.full_path)
+@dataclass
+class TaskTranscription:
+    """值对象：音频处理结果。"""
+    text: str
+    status:str
 
 
 @dataclass
