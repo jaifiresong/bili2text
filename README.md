@@ -40,7 +40,7 @@
   <tr>
     <td align="center">
       <img src="docs/img_2.png" width="400" alt="处理进度"><br>
-      <sub>SSE 实时推送 — 进度一目了然</sub>
+      <sub>任务列表</sub>
     </td>
     <td align="center">
       <img src="docs/img_3.png" width="400" alt="结果展示"><br>
