@@ -1,26 +1,18 @@
-pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+# B站视频音频转录与智能总结系统 — 融合架构设计
 
-参考项目
-- 下载视频，特别感谢，自由度高
-    - https://github.com/abumpkin/bilibiliDownloader
+以 2.md 的简洁骨架为基础，吸收 1.md 的 SSE 实时推送、轻量领域事件、值对象自校验等优点，
+避免过度工程，同时保留必要的 DDD 严谨性。
 
-- 下载视频
-    - https://github.com/yutto-dev/bilili
+## 启动
 
-- 项目实现方式和技术栈参考
-    - https://github.com/lanbinshijie/bili2text
+```bash
+uvicorn src.main:app --reload
+```
 
-抖音视频下载
-https://www.xiazaitool.com/dy
+## 架构要点
 
-
-
-pip install fastapi "uvicorn[standard]"
-
-# 格式：uvicorn <文件名>:<应用对象名> --reload
-uvicorn main:app --reload
---reload 参数：让服务器在检测到代码文件变化时自动重新加载（仅用于开发环境）。
-
-
-自动交互式文档（Swagger UI）：
-访问：http://127.0.0.1:8000/docs
+- **领域层零外部依赖**：所有外部交互通过端口抽象。
+- **聚合根之间只存原始值**：`ProcessingTask` 不持有 `VideoAudio`/`Transcription` 实例，只存 `audio_path`/`raw_transcript` 等原始值。
+- **流水线编排置于应用层**：`ProcessVideoUseCase` 负责 download → transcribe → punctuate → summarize 的编排。
+- **轻量领域事件**：`SimpleEventBus` 采用内存回调模式，足够支撑 SSE 推送，后续可平滑替换为消息队列。
+- **适度分包**：避免 1.md 的过度细分，保持 Python 项目可维护性。

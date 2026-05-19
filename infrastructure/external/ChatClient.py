@@ -193,14 +193,12 @@ class ChatClient:
 # 使用示例
 # ===================================================================
 if __name__ == "__main__":
-    from dotenv import load_dotenv
+    from infrastructure.config import LLM_CFG
 
-    load_dotenv()
+    cfg = LLM_CFG['kimi-k2.6']
 
     client = ChatClient(
-        model=os.getenv("LLM_MODEL", "gpt-4o"),
-        api_key=os.getenv("LLM_API_KEY", ""),
-        base_url=os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"),
+        **cfg,
         system_role="You are a helpful assistant.",
         on_chunk=lambda s: print(s, end=""),
     )

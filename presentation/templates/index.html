@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B站视频转录与智能总结</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .doc-markdown h1 { font-size: 1.25rem; font-weight: 700; margin: 1rem 0 0.5rem; color: #1f2937; }
+        .doc-markdown h2 { font-size: 1.1rem; font-weight: 600; margin: 0.75rem 0 0.5rem; color: #374151; }
+        .doc-markdown h3 { font-size: 1rem; font-weight: 600; margin: 0.5rem 0 0.25rem; color: #4b5563; }
+        .doc-markdown p { margin: 0.25rem 0; }
+        .doc-markdown ul, .doc-markdown ol { padding-left: 1.5rem; margin: 0.25rem 0; }
+        .doc-markdown li { margin: 0.125rem 0; }
+        .doc-markdown code { background: #f3f4f6; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.85em; }
+        .doc-markdown pre { background: #f3f4f6; padding: 0.75rem 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; font-size: 0.85em; }
+        .doc-markdown pre code { background: none; padding: 0; }
+        .doc-markdown blockquote { border-left: 3px solid #d1d5db; padding-left: 1rem; margin: 0.5rem 0; color: #6b7280; }
+        .doc-markdown strong { font-weight: 600; color: #1f2937; }
+        .doc-markdown hr { border: none; border-top: 1px solid #e5e7eb; margin: 0.75rem 0; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bilibili: {
+                            DEFAULT: '#00a1d6',
+                            50: '#e6f7fc',
+                            100: '#b0e4f5',
+                            500: '#00a1d6',
+                            600: '#008db8',
+                            700: '#007a9e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+    <!-- 顶部 Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-bilibili-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">B</div>
+            <h1 class="text-xl font-bold text-gray-900 tracking-tight">B站视频转录与智能总结</h1>
+        </div>
+    </header>
+
+    <!-- Tab 导航 -->
+    <nav class="max-w-7xl mx-auto px-4 mt-6">
+        <div class="flex gap-1 bg-white rounded-lg border border-gray-200 p-1 shadow-sm">
+            <button onclick="switchTab('submit')" id="tab-submit" class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-md transition bg-bilibili-50 text-bilibili-600">提交任务</button>
+            <button onclick="switchTab('tasks')" id="tab-tasks" class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-md transition text-gray-600 hover:bg-gray-100">任务列表</button>
+            <button onclick="switchTab('documents')" id="tab-documents" class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-md transition text-gray-600 hover:bg-gray-100">文档库</button>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+
+        <!-- ============================================================ -->
+        <!-- Tab 1: 提交任务 -->
+        <!-- ============================================================ -->
+        <section id="panel-submit" class="tab-panel">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                <label for="videoUrl" class="block text-sm font-medium text-gray-700 mb-2">视频地址</label>
+                <div class="flex gap-3">
+                    <input
+                        type="text"
+                        id="videoUrl"
+                        placeholder="请输入B站视频地址，如：https://www.bilibili.com/video/BV..."
+                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bilibili-500 focus:border-bilibili-500 outline-none transition text-sm"
+                    />
+                    <button id="parseBtn" onclick="parseUrl()" class="px-6 py-3 bg-bilibili-500 hover:bg-bilibili-600 text-white font-medium rounded-lg transition shadow-sm whitespace-nowrap">
+                        解析视频
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-gray-400">支持多P视频。解析后展示分P列表，选择需要处理的部分批量提交。</p>
+            </div>
+
+            <!-- 提交后实时轮询卡片区 -->
+            <div id="pollingContainer" class="space-y-4"></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Tab 2: 任务列表 -->
+        <!-- ============================================================ -->
+        <section id="panel-tasks" class="tab-panel hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">全部任务</h3>
+                <button onclick="loadTaskList()" class="px-3 py-1.5 text-xs font-medium text-bilibili-600 bg-bilibili-50 rounded-md hover:bg-bilibili-100 transition">刷新</button>
+            </div>
+            <div id="taskListContainer" class="space-y-3">
+                <p class="text-sm text-gray-400 text-center py-8">加载中...</p>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Tab 3: 文档库 -->
+        <!-- ============================================================ -->
+        <section id="panel-documents" class="tab-panel hidden">
+            <!-- 文档列表视图 -->
+            <div id="docListView">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">已处理文档</h3>
+                    <button onclick="loadDocList()" class="px-3 py-1.5 text-xs font-medium text-bilibili-600 bg-bilibili-50 rounded-md hover:bg-bilibili-100 transition">刷新</button>
+                </div>
+                <div id="docListContainer" class="space-y-3">
+                    <p class="text-sm text-gray-400 text-center py-8">加载中...</p>
+                </div>
+            </div>
+
+            <!-- 文档详情视图（左侧分P菜单 + 右侧内容） -->
+            <div id="docDetailView" class="hidden">
+                <div class="flex items-center gap-3 mb-4">
+                    <button onclick="backToDocList()" class="whitespace-nowrap px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">← 返回列表</button>
+                    <h3 id="docDetailTitle" class="text-lg font-semibold text-gray-800"></h3>
+                    <a id="docOriginalLink" href="#" target="_blank" class="ml-auto whitespace-nowrap px-3 py-1.5 text-xs font-medium text-bilibili-600 bg-bilibili-50 rounded-md hover:bg-bilibili-100 transition">打开原视频 ↗</a>
+                </div>
+                <div class="flex gap-4 min-h-[60vh]">
+                    <!-- 左侧分P菜单 -->
+                    <div class="w-56 shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                            <span class="text-xs font-medium text-gray-500">分P 菜单</span>
+                        </div>
+                        <div id="docPageMenu" class="py-1">
+                            <!-- 由 JS 动态填充 -->
+                        </div>
+                    </div>
+                    <!-- 右侧内容区 -->
+                    <div class="flex-1 min-w-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div id="docPageContent" class="p-5">
+                            <p class="text-sm text-gray-400 text-center py-12">请在左侧选择一个分P</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 多P选择弹窗 -->
+    <div id="pageModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closePageModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[80vh] flex flex-col">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-start gap-4">
+                <div class="min-w-0">
+                    <h3 class="text-lg font-semibold text-gray-900">选择要处理的分P</h3>
+                    <p id="modalVideoTitle" class="text-sm text-gray-500 mt-1 break-words"></p>
+                </div>
+                <button onclick="closePageModal()" class="text-gray-400 hover:text-gray-600 transition p-1 shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="pageList" class="flex-1 overflow-y-auto px-6 py-4 space-y-2"></div>
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button onclick="selectAllPages()" class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">全选</button>
+                    <button onclick="deselectAllPages()" class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">取消全选</button>
+                </div>
+                <button onclick="submitSelectedPages()" class="px-5 py-2 bg-bilibili-500 hover:bg-bilibili-600 text-white text-sm font-medium rounded-lg transition shadow-sm">确认提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div id="detailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeDetailModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 max-h-[85vh] flex flex-col">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 id="detailTitle" class="text-lg font-semibold text-gray-900"></h3>
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 transition p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="detailContent" class="flex-1 overflow-y-auto px-6 py-4"></div>
+        </div>
+    </div>
+
+    <!-- Toast 通知容器 -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- 确认弹窗 -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeConfirm(false)"></div>
+        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6">
+            <p id="confirmMsg" class="text-sm text-gray-700 mb-5"></p>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeConfirm(false)" class="px-4 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition">取消</button>
+                <button onclick="closeConfirm(true)" class="px-4 py-2 text-xs font-medium text-white bg-bilibili-500 rounded-md hover:bg-bilibili-600 transition">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

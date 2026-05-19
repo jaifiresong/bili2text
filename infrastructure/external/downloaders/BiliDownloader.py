@@ -1,3 +1,4 @@
+import json
 import os
 import httpx
 import asyncio
@@ -12,7 +13,7 @@ HEADERS = {
 
 
 class BiliDownloader:
-    def __init__(self, url: str, sessdata: str | None = None):
+    def __init__(self, sessdata: str | None = None):
         cookies = httpx.Cookies()
         if sessdata:
             cookies.set("SESSDATA", quote(unquote(sessdata)))
@@ -25,34 +26,26 @@ class BiliDownloader:
             verify=False,
         )
 
-        self.url = url
-        self.bvid = None
-        self.page = 2
-
-    async def _resolve_url(self):
+    async def _resolve_url(self, url):
         """跟随重定向，获取最终的B站规范URL。"""
-        resp = await self.client.get(self.url)
+        resp = await self.client.get(url)
         print(str(resp.url))
         parsed = urlparse(str(resp.url))
-        self.bvid = parsed.path.strip('/').split('/')[-1]
-        self.path = f"./resources/{self.bvid}"
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
+        bvid = parsed.path.strip('/').split('/')[-1]
+        return bvid
 
-    async def get_video_info(self) -> dict:
+    async def get_video_info(self, url) -> dict:
         """获取视频基本信息，返回含cid、title等的字典。"""
-        await self._resolve_url()
         api = "https://api.bilibili.com/x/web-interface/view"
-        params = {'bvid': self.bvid}
+        bvid = await self._resolve_url(url)
+        params = {'bvid': bvid}
         resp = await self.client.get(api, params=params)
         data = resp.json()
         if data["code"] != 0:
             raise RuntimeError(f"获取视频信息失败: {data.get('message', '未知错误')}")
+        return get_nested_value(data, 'data')
 
-        _map = {i['page']: i for i in get_nested_value(data, 'data.pages')}
-        return _map
-
-    async def get_play_url(self, video) -> str:
+    async def get_play_url(self, cid, bvid) -> str:
         """获取DASH格式播放地址。"""
         api = "https://api.bilibili.com/x/player/playurl"
         params = {
@@ -60,8 +53,8 @@ class BiliDownloader:
             "fnval": 4048,
             "fourk": 1,
             "otype": "json",
-            "cid": video['cid'],
-            "bvid": self.bvid,
+            "cid": cid,
+            "bvid": bvid,
         }
 
         resp = await self.client.get(api, params=params)
@@ -70,13 +63,10 @@ class BiliDownloader:
         # print(json.dumps(get_nested_value(data, 'data.dash.audio[0]')))
         return get_nested_value(data, 'data.dash.audio[0].base_url')
 
-    async def download(self, video: dict, name):
-        stream_url = await self.get_play_url(video)
+    async def download(self, stream_url, full_name):
         async with self.client.stream("GET", stream_url, follow_redirects=True) as resp:
             downloaded = 0
             total = int(resp.headers.get("content-length", 0))
-
-            full_name = os.path.join(self.path, f"{name}.mp3")
             if os.path.exists(full_name):
                 stat = os.stat(full_name)
                 if stat.st_size >= total:
@@ -95,13 +85,17 @@ class BiliDownloader:
                             progress = downloaded / total * 100
                             print(f"\r下载进度：{progress:.1f}%", end="")
 
-    async def x(self):
-        pages = await self.get_video_info()
-        for k, v in pages.items():
-            await self.download(v, k)
-
 
 if '__main__' == __name__:
-    r = BiliDownloader('https://www.bilibili.com/video/BV1fMwvzDECY/?spm_id_from=333.788.videopod.episodes')
-    # asyncio.run(r.download())
-    asyncio.run(r.x())
+    async def test():
+        d = BiliDownloader()
+        info = await d.get_video_info('https://www.bilibili.com/video/BV1oQwYzCEmc/')
+        print(json.dumps(info))
+        print(info['bvid'])
+        print(info['pages'][0]['cid'])
+        stream_url = await d.get_play_url(info['pages'][0]['cid'], info['bvid'])
+
+        await d.download(stream_url, 'test.mp3')
+
+
+    asyncio.run(test())
