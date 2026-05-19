@@ -1,4 +1,4 @@
-# bili2text — B站视频转录与智能总结系统
+# bili2text — B站视频转录与智能总结
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python 3.10+">
@@ -10,7 +10,7 @@
 
 <p align="center">
   <b>一键将 B站视频转为高质量文字稿 + AI 智能总结</b><br>
-  <i>基于 FastAPI + OpenAI Whisper + LLM，支持 SSE 实时进度推送</i>
+  <i>基于 FastAPI + OpenAI Whisper + LLM</i>
 </p>
 
 ---
@@ -108,7 +108,7 @@ uvicorn main:app --reload
 
 ## 🏗️ 架构设计
 
-### 分层架构
+### 目录结构
 
 ```
 presentation/     ← HTTP 路由、Web UI、异常处理
@@ -221,11 +221,11 @@ speech_model = {
 
 ## 📄 许可证
 
-[MIT](LICENSE) © yourname
+[MIT](LICENSE) © 
 
 ---
 
 <p align="center">
   如果这个项目对你有帮助，请给个 ⭐ Star！<br>
-  <sub>Keywords: B站视频转文字, Bilibili transcription, Whisper 语音识别, AI 视频总结, FastAPI, DDD 架构, SSE 实时推送, OpenAI 兼容, 视频转录, 语音转文本, Python 视频处理</sub>
+  <sub>Keywords: B站视频转文字, Bilibili transcription, Whisper 语音识别, AI 视频总结, FastAPI, DDD 架构, OpenAI 兼容, 视频转录, 语音转文本, Python 视频处理</sub>
 </p>
