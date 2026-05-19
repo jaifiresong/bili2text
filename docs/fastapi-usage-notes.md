@@ -1,6 +1,6 @@
 # FastAPI 使用经验笔记
 
-> 整理自 bili2text-v2 项目开发过程中的 FastAPI 相关问题与解决方案。
+> 整理自 bili2text 项目开发过程中的 FastAPI 相关问题与解决方案。
 
 ---
 
