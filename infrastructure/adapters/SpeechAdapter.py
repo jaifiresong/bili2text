@@ -30,7 +30,7 @@ def to_text(audio_path, txt_path, m='tiny'):
 
     print('start transcribe ...')
     st = time.time()
-    r = model.transcribe(audio_path, fp16=False, language='Chinese', initial_prompt='以下是普通话的句子')
+    r = model.transcribe(audio_path, fp16=False, language='zh', initial_prompt='以下是普通话简体中文识别结果：')
     with open(txt_path, 'w', encoding='utf-8') as fp:
         fp.write(r['text'])
     en = time.time()
@@ -45,4 +45,4 @@ class SpeechAdapter(SpeechRecognizerPort):
 
 
 if __name__ == '__main__':
-    to_text('./test.mp3', '1.txt')
+    to_text(r'D:\jaifiresong\bili2text\storage\audio\36784898621.mp3', '1.txt')
