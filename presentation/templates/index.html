@@ -43,14 +43,14 @@
 
     <!-- 顶部 Header -->
     <header class="bg-white border-b border-gray-200 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
+        <div class="max-w-[1680px] mx-auto px-4 py-4 flex items-center gap-3">
             <div class="w-10 h-10 bg-bilibili-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">B</div>
             <h1 class="text-xl font-bold text-gray-900 tracking-tight">B站视频转录与智能总结</h1>
         </div>
     </header>
 
     <!-- Tab 导航 -->
-    <nav class="max-w-7xl mx-auto px-4 mt-6">
+    <nav class="max-w-[1680px] mx-auto px-4 mt-6">
         <div class="flex gap-1 bg-white rounded-lg border border-gray-200 p-1 shadow-sm">
             <button onclick="switchTab('submit')" id="tab-submit" class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-md transition bg-bilibili-50 text-bilibili-600">提交任务</button>
             <button onclick="switchTab('tasks')" id="tab-tasks" class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-md transition text-gray-600 hover:bg-gray-100">任务列表</button>
@@ -59,7 +59,7 @@
     </nav>
 
     <!-- 主内容区 -->
-    <main class="max-w-7xl mx-auto px-4 py-6">
+    <main class="max-w-[1680px] mx-auto px-4 py-6">
 
         <!-- ============================================================ -->
         <!-- Tab 1: 提交任务 -->
@@ -122,11 +122,11 @@
                 </div>
                 <div class="flex gap-4 min-h-[60vh]">
                     <!-- 左侧分P菜单 -->
-                    <div class="w-56 shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                    <div class="w-96 shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-180px)]">
+                        <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 shrink-0">
                             <span class="text-xs font-medium text-gray-500">分P 菜单</span>
                         </div>
-                        <div id="docPageMenu" class="py-1">
+                        <div id="docPageMenu" class="py-1 flex-1 overflow-y-auto">
                             <!-- 由 JS 动态填充 -->
                         </div>
                     </div>
