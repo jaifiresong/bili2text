@@ -16,7 +16,7 @@ speech_model = {
 }
 
 
-def to_text(audio_path, txt_path, m='tiny'):
+def to_text(audio_path, txt_path, m='small'):
     """
     指定 Whisper 输出为简体中文
     使用 --initial_prompt 参数，用简体中文输入 "以下是普通话的句子。" 就能生成简体中文字幕。（补充：whisper.cpp 用户可以尝试使用--prompt参数）
