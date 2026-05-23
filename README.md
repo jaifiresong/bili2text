@@ -61,7 +61,7 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/yourusername/bili2text.git
+git clone https://github.com/jaifiresong/bili2text
 cd bili2text
 ```
 
