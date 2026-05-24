@@ -481,9 +481,12 @@ function selectDocPage(pageNum) {
   // 存储当前 page 数据到 content 元素上
   content._docTabs = tabs;
 
-  // 渲染 tab 按钮栏
+  // 工具栏：tab 按钮 + 复制按钮
+  const toolbar = document.createElement("div");
+  toolbar.className = "flex items-center justify-between mb-4 border-b border-gray-200 pb-0";
+
   const tabBar = document.createElement("div");
-  tabBar.className = "flex items-center gap-1 mb-4 border-b border-gray-200 pb-0";
+  tabBar.className = "flex items-center gap-1";
 
   tabs.forEach((t, i) => {
     const btn = document.createElement("button");
@@ -492,8 +495,15 @@ function selectDocPage(pageNum) {
     btn.onclick = () => switchDocTextTab(content, i);
     tabBar.appendChild(btn);
   });
+  toolbar.appendChild(tabBar);
 
-  content.appendChild(tabBar);
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "mb-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition flex items-center gap-1";
+  copyBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 012-2v-8a2 2 0 01-2-2h-8a2 2 0 01-2 2v8a2 2 0 012 2z"/></svg>复制内容`;
+  copyBtn.onclick = () => copyCurrentDocText(content);
+  toolbar.appendChild(copyBtn);
+
+  content.appendChild(toolbar);
 
   // 内容容器
   const body = document.createElement("div");
@@ -508,6 +518,7 @@ function selectDocPage(pageNum) {
 function switchDocTextTab(contentEl, index) {
   const tabs = contentEl._docTabs;
   if (!tabs || index >= tabs.length) return;
+  contentEl._activeTabIdx = index;
 
   // 更新 tab 按钮样式
   const buttons = contentEl.querySelectorAll(".doc-text-tab");
@@ -536,6 +547,31 @@ function switchDocTextTab(contentEl, index) {
     pre.className = "bg-gray-50 rounded-lg p-4 text-sm whitespace-pre-wrap break-words max-h-[70vh] overflow-y-auto leading-relaxed text-gray-700 font-mono";
     pre.textContent = t.text;
     body.appendChild(pre);
+  }
+}
+
+async function copyCurrentDocText(contentEl) {
+  const tabs = contentEl._docTabs;
+  const idx = contentEl._activeTabIdx;
+  if (!tabs || idx === undefined || idx >= tabs.length) return;
+  const text = tabs[idx].text;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("内容已复制到剪贴板", "success");
+  } catch (e) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      showToast("内容已复制到剪贴板", "success");
+    } catch (err) {
+      showToast("复制失败，请手动复制", "error");
+    }
+    document.body.removeChild(textarea);
   }
 }
 
