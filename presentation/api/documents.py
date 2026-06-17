@@ -3,6 +3,7 @@
 路由：GET /api/v1/documents/  (文档列表)
 路由：GET /api/v1/documents/{video_id}  (文档详情)
 路由：DELETE /api/v1/documents/{video_id}/pages/{page}  (删除某分P的文件)
+路由：POST /api/v1/documents/{video_id}/pages/{page}/resummarize  (重新总结某分P)
 """
 
 import os
@@ -10,6 +11,7 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 
 from domain.exceptions import TaskNotFoundError
+from domain.ports import LLMServicePort
 from domain.repositories import VideoInfoRepository
 
 from application.use_cases import ListDocumentsUseCase, GetDocumentDetailUseCase
@@ -61,5 +63,36 @@ async def delete_page_content(
                 setattr(p, attr, None)
             await video_repo.save(video)
             return {"status": "ok"}
+
+    raise HTTPException(status_code=404, detail="分P不存在")
+
+
+@router.post("/{video_id}/pages/{page}/resummarize")
+async def resummarize_page(
+    video_id: str,
+    page: int,
+    video_repo: VideoInfoRepository = Depends(get_depend_object(VideoInfoRepository)),
+    llm: LLMServicePort = Depends(get_depend_object(LLMServicePort)),
+):
+    """重新总结某个分P：清空已有总结文件，重新调用 LLM 生成总结。"""
+    video = await video_repo.find(id=video_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="视频信息不存在")
+
+    for p in video.pages:
+        if p.page == page:
+            if not p.txt_punctuation_path:
+                raise HTTPException(status_code=400, detail="该分P没有加标点后的文本，无法总结")
+
+            if p.txt_summarize_path:
+                try:
+                    os.remove(p.txt_summarize_path)
+                except OSError:
+                    pass
+                p.txt_summarize_path = None
+
+            p.txt_summarize_path = await llm.summarize(p)
+            await video_repo.save(video)
+            return {"status": "ok", "page": page}
 
     raise HTTPException(status_code=404, detail="分P不存在")

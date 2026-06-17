@@ -425,6 +425,7 @@ function renderDocPageMenu(pages) {
 
   pages.forEach((p) => {
     const hasContent = p.raw_text || p.punctuated_text || p.summary;
+    const hasSummary = !!p.summary;
     const item = document.createElement("div");
     item.id = `page-menu-${p.page}`;
     item.className = "doc-page-item px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition border-l-2 border-transparent text-sm flex items-center gap-1.5";
@@ -432,14 +433,38 @@ function renderDocPageMenu(pages) {
     item.innerHTML = `
       <span class="text-gray-700 truncate flex-1 min-w-0">P${p.page}：${p.part}</span>
       ${hasContent ? '<span class="shrink-0 text-xs text-green-500">✓</span>' : '<span class="shrink-0 text-xs text-gray-300">空</span>'}
+      ${hasSummary
+        ? '<button class="btn-resummarize shrink-0 text-xs text-blue-400 hover:text-blue-600 ml-1 px-1" title="重新生成智能总结">↻</button>'
+        : ''}
       ${hasContent
-        ? '<button class="shrink-0 text-xs text-red-400 hover:text-red-600 ml-1 px-1" title="删除该分P的处理文件">×</button>'
-        : '<button class="shrink-0 text-xs text-bilibili-500 hover:text-bilibili-700 ml-1 px-1 font-bold" title="创建该分P的处理任务">＋</button>'}
+        ? '<button class="btn-delete shrink-0 text-xs text-red-400 hover:text-red-600 ml-1 px-1" title="删除该分P的处理文件">×</button>'
+        : '<button class="btn-create shrink-0 text-xs text-bilibili-500 hover:text-bilibili-700 ml-1 px-1 font-bold" title="创建该分P的处理任务">＋</button>'}
     `;
-    item.querySelector('button').onclick = (e) => {
-      e.stopPropagation();
-      handlePageAction(p.page, hasContent);
-    };
+
+    const resummarizeBtn = item.querySelector('.btn-resummarize');
+    if (resummarizeBtn) {
+      resummarizeBtn.onclick = (e) => {
+        e.stopPropagation();
+        handleResummarizeAction(p.page);
+      };
+    }
+
+    const deleteBtn = item.querySelector('.btn-delete');
+    if (deleteBtn) {
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        handlePageAction(p.page, hasContent);
+      };
+    }
+
+    const createBtn = item.querySelector('.btn-create');
+    if (createBtn) {
+      createBtn.onclick = (e) => {
+        e.stopPropagation();
+        handlePageAction(p.page, hasContent);
+      };
+    }
+
     item.onclick = () => selectDocPage(p.page);
     menu.appendChild(item);
   });
@@ -602,6 +627,29 @@ async function handlePageAction(pageNum, hasContent) {
     const ok = await showConfirm(`为 P${pageNum} 创建处理任务？`);
     if (!ok) return;
     await submitBatch(currentDocData.id, [pageNum]);
+  }
+}
+
+async function handleResummarizeAction(pageNum) {
+  const ok = await showConfirm(`确认重新生成 P${pageNum} 的智能总结？将清空已有总结并重新生成。`);
+  if (!ok) return;
+
+  showToast("正在重新生成总结，请稍候...", "info");
+
+  try {
+    const res = await fetch(
+      `/api/v1/documents/${currentDocData.id}/pages/${pageNum}/resummarize`,
+      { method: "POST" }
+    );
+    if (res.ok) {
+      showToast(`P${pageNum} 智能总结已重新生成`, "success");
+      openDocDetail(currentDocData.id);
+    } else {
+      const data = await res.json();
+      showToast(data.detail || "重新总结失败", "error");
+    }
+  } catch (e) {
+    showToast("重新总结失败", "error");
   }
 }
 
