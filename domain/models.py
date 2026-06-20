@@ -47,6 +47,12 @@ class TranscriptSegment:
 
 # ============ 枚举（Enums） ============
 
+class Platform(str, Enum):
+    """视频平台枚举。"""
+    BILIBILI = "bilibili"
+    DOUYIN = "douyin"
+
+
 class TaskStatus(Enum):
     """任务生命周期状态枚举。
 
@@ -77,7 +83,8 @@ class VideoInfoItem(BaseModel):
 
 
 class VideoInfo(BaseModel):
-    bvid: str
+    platform: str = Platform.BILIBILI
+    bvid: str  # B站: BV号; 抖音: aweme_id
     title: str
     aid: int
     cid: int

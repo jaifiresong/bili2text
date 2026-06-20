@@ -4,6 +4,7 @@
 """
 
 from .models import (
+    Platform,
     ProcessingTask,
     TaskStatus,
     TranscriptSegment,
@@ -34,6 +35,7 @@ from .exceptions import (
 
 __all__ = [
     # 实体 / 值对象 / 枚举
+    "Platform",
     "ProcessingTask",
     "TaskStatus",
     "TranscriptSegment",
