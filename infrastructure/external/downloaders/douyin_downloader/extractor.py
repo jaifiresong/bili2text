@@ -34,6 +34,7 @@ def get_video_info(client: "DouyinClient", aweme_id: str) -> dict:
 
     info = {
         'aweme_id': post.get('aweme_id', ''),
+        'title': post.get('item_title', ''),
         'desc': post.get('desc', ''),
         'author_nickname': author.get('nickname', ''),
         'author_uid': author.get('uid', ''),
