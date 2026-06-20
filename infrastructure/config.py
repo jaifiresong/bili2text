@@ -12,8 +12,23 @@ LLM_CFG = {
         api_key=os.getenv("LLM_API_KEY"),
         base_url=os.getenv("LLM_BASE_URL"),
     ),
+    'deepseek-v4-pro': dict(
+        model='deepseek-v4-pro',
+        api_key=os.getenv("LLM_API_KEY"),
+        base_url=os.getenv("LLM_BASE_URL"),
+    ),
     'kimi-k2.6': dict(
-        model=os.getenv("LLM_MODEL"),
+        model='kimi-k2.6',
+        api_key=os.getenv("LLM_API_KEY"),
+        base_url=os.getenv("LLM_BASE_URL"),
+    ),
+    'kimi-k2.7': dict(
+        model='kimi-k2.7',
+        api_key=os.getenv("LLM_API_KEY"),
+        base_url=os.getenv("LLM_BASE_URL"),
+    ),
+    'glm-5.1': dict(
+        model='glm-5.1',
         api_key=os.getenv("LLM_API_KEY"),
         base_url=os.getenv("LLM_BASE_URL"),
     ),
@@ -22,13 +37,13 @@ LLM_CFG = {
         api_key=os.getenv("LLM_API_KEY"),
         base_url=os.getenv("LLM_BASE_URL"),
     ),
-    'deepseek-v4-pro': dict(
-        model='deepseek-v4-pro',
+    'mimo-v2.5': dict(
+        model='mimo-v2.5',
         api_key=os.getenv("LLM_API_KEY"),
         base_url=os.getenv("LLM_BASE_URL"),
     ),
-    'minimax-m3': dict(
-        model='minimax-m3',
+    'mimo-v2.5-pro': dict(
+        model='mimo-v2.5-pro',
         api_key=os.getenv("LLM_API_KEY"),
         base_url=os.getenv("LLM_BASE_URL"),
     ),
