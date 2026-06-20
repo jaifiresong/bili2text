@@ -195,7 +195,7 @@ class ChatClient:
 if __name__ == "__main__":
     from infrastructure.config import LLM_CFG
 
-    cfg = LLM_CFG['kimi-k2.6']
+    cfg = LLM_CFG['mimo-v2.5']
 
     client = ChatClient(
         **cfg,
