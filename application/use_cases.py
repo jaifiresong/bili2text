@@ -174,6 +174,7 @@ class ListDocumentsUseCase:
                 "page_count": len(v.pages),
                 "has_content": has_content,
             })
+        result.reverse()
         return result
 
 

@@ -7,7 +7,9 @@ client = DouyinClient()
 # info = client.extr_video_info("https://www.douyin.com/jingxuan?modal_id=7649618569144585635")
 # info = client.extr_video_info("https://www.douyin.com/jingxuan?modal_id=7650808310732313507")
 # info = client.extr_video_info("https://www.douyin.com/jingxuan?modal_id=7649422251011345706") # 没有 music_url
-info = client.extr_video_info("https://www.douyin.com/jingxuan?modal_id=7650808310732313507") # 音频不对应
+# info = client.extr_video_info("https://www.douyin.com/jingxuan?modal_id=7650808310732313507") # 音频不对应
+
+info = client.extr_video_info("https://www.douyin.com/jingxuan?modal_id=7651437670727437606") # 被限流
 
 print(json.dumps(info))
 

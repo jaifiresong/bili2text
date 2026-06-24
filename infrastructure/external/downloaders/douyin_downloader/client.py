@@ -13,6 +13,7 @@ import urllib.parse
 import urllib3.util.retry
 from requests.adapters import HTTPAdapter
 
+from infrastructure.config import DOUYIN_COOKIE
 from . import config
 from .logger import _logger
 from .sign import a_bogus_sign
@@ -36,7 +37,7 @@ class DouyinClient:
     """抖音 API 客户端 (同步版)"""
 
     def __init__(self, cookie: str = ''):
-        self.cookie = cookie or ''
+        self.cookie = cookie or DOUYIN_COOKIE
         self._webid = None
         self._webid_time = 0
         retry = urllib3.util.retry.Retry(total=3, backoff_factor=0.5, status_forcelist=[502, 503, 504])

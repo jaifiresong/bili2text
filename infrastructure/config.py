@@ -49,6 +49,8 @@ LLM_CFG = {
     ),
 }
 
+DOUYIN_COOKIE = os.getenv("DOUYIN_COOKIE")
+
 if __name__ == "__main__":
     print(BASE_DIR)
     print(LLM_CFG)
